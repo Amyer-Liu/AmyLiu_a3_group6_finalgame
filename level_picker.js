@@ -278,6 +278,12 @@ function startLevel(i) {
   currentLevel = i + 1;      // 2 for Level 2, 3 for Level 3
   loadLevel(currentLevel);   // build that level's background/walls/spikes/fish
   resetGame();
+
+  if (currentLevel === 2) {
+    startLevel2Intro();      // show avalanche card before Level 2 begins
+    return;
+  }
+
   gameState = "playing";
   cursor(ARROW);
 }

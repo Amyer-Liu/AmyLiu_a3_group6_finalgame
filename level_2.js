@@ -31,8 +31,33 @@ const LEVEL2_FISH_SPAWNS = [
     { x: 87, y: 1180},
 ];
 
+let avalancheCard2;
+let level2CardActive = false;
+
 function preloadLevel2Assets() {
   hole = loadImage("assets/images/crevice.png");
+  avalancheCard2 = loadImage("assets/images/avalanche_card2.png");
+}
+
+function startLevel2Intro() {
+  level2CardActive = true;
+  gameState = "level2_card";
+}
+
+// ENTER dismisses the card and hands control back to normal gameplay.
+function handleLevel2CardKeyPressed() {
+  if (gameState !== "level2_card" || keyCode !== ENTER) return false;
+
+  level2CardActive = false;
+  gameState = "playing";
+  cursor(ARROW);
+  playCardSwitchSound(); // reuse the same sound Level 1 uses when cards change
+  return true;
+}
+
+// Draws the card — reuses drawDialogueCard() already defined in tutorial_cards.js
+function drawLevel2CardOverlay() {
+  drawDialogueCard(avalancheCard2);
 }
 
 // Where the fish first appears when Level 2 loads.

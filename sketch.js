@@ -1150,7 +1150,7 @@ function updateTimerSound() {
   if (!timerSound || !timerSound.isLoaded()) return;
   if (!audioUnlocked || getAudioContext().state !== "running") return;
 
-  const timerPaused = tutorialActive && tutorialIndex < 4;
+    const timerPaused = (tutorialActive && tutorialIndex < 4) || level2CardActive;
 
   const countdownRunning =
     timerStarted &&
@@ -1465,6 +1465,10 @@ function draw() {
     drawTutorialOverlay();
   }
 
+   if (level2CardActive) {
+    drawLevel2CardOverlay();
+  }
+
   // --- NEED FISH POPUP MESSAGE ---
   if (needFishMessageActive) {
     needFishMessageTimer--;
@@ -1550,6 +1554,12 @@ function keyPressed() {
     gameState = "level_picker";
     return;
   }
+
+  // TUTORIAL INPUT (tutorial_cards.js)
+  if (handleTutorialKeyPressed()) return;
+
+  // LEVEL 2 INTRO CARD INPUT (level_2.js)
+  if (handleLevel2CardKeyPressed()) return;
 
   // TUTORIAL INPUT (tutorial_cards.js)
   if (handleTutorialKeyPressed()) return;
@@ -1681,7 +1691,7 @@ function drawTimer() {
   // 0-3). Shifting startTime forward by the elapsed frame time keeps
   // "elapsed" from advancing while paused, without needing a separate
   // paused-duration accumulator.
-  if (timerStarted && tutorialActive && tutorialIndex < 4) {
+   if (timerStarted && ((tutorialActive && tutorialIndex < 4) || level2CardActive)) {
     startTime += deltaTime;
   }
 
@@ -1783,7 +1793,7 @@ function updateWalkSound() {
 
 function handleInput() {
   // --- STOMP ---
-  if (keyIsDown(32) && !stompAnimating && !tutorialActive) {
+    if (keyIsDown(32) && !stompAnimating && !tutorialActive && !level2CardActive) {
     stompAnimating = true;
     stompFrame = 0;
     stompFrameTimer = 0;
@@ -1817,6 +1827,11 @@ function handleInput() {
   // only when tutorialActive is false, i.e. normal play and the gap
   // between the flashlight card and the space card.
   if (tutorialActive) {
+    player.isMoving = false;
+    return;
+  }
+
+  if (level2CardActive) {
     player.isMoving = false;
     return;
   }
