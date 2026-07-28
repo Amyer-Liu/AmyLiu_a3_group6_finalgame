@@ -14,6 +14,50 @@ const LEVEL3_HOLES = [
   { x: 633, y: 459},
 ]
 
+let avalancheCard3;
+let goatCard;
+let level3CardActive = false;
+let level3CardStep = 0;
+
+
+function preloadLevel3Assets() {
+  avalancheCard3 = loadImage("assets/images/avalanche_card3.png");
+  goatCard = loadImage("assets/images/goat_card.png");
+}
+
+function startLevel3Intro() {
+  level3CardActive = true;
+  level3CardStep = 0;
+  gameState = "level3_card";
+}
+
+// ENTER dismisses the card and hands control back to normal gameplay.
+function handleLevel3CardKeyPressed() {
+  if (gameState !== "level3_card" || keyCode !== ENTER) return false;
+
+  level3CardStep++;
+
+  if (level3CardStep >= 2) {
+    // both cards have been dismissed — start gameplay
+    level3CardActive = false;
+    gameState = "playing";
+    cursor(ARROW);
+  } else {
+    playCardSwitchSound(); // same sound used when tutorial/level2 cards advance
+  }
+
+  return true;
+}
+
+// Draws the card — reuses drawDialogueCard() already defined in tutorial_cards.js
+function drawLevel3CardOverlay() {
+  if (level3CardStep === 0) {
+    drawDialogueCard(avalancheCard3);
+  } else if (level3CardStep === 1) {
+    drawDialogueCard(goatCard);
+  }
+}
+
 function getLevel3FishStart(WORLD_W_SCALED, WORLD_H_SCALED) {
   return {
     x: WORLD_W_SCALED / 2,

@@ -280,7 +280,12 @@ function startLevel(i) {
   resetGame();
 
   if (currentLevel === 2) {
-    startLevel2Intro();      // show avalanche card before Level 2 begins
+    startLevel2Intro();      // show avalanche + crevices cards before Level 2 begins
+    return;
+  }
+
+  if (currentLevel === 3) {
+    startLevel3Intro();      // show avalanche card before Level 3 begins
     return;
   }
 

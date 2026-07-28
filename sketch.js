@@ -586,6 +586,7 @@ function preload() {
   preloadTutorialAssets();
   preloadLevelPickerAssets();
   preloadLevel2Assets();
+  preloadLevel3Assets();
 
   // Fishy stuff
   fishImg = loadImage("assets/images/test_fish.png");
@@ -1150,8 +1151,7 @@ function updateTimerSound() {
   if (!timerSound || !timerSound.isLoaded()) return;
   if (!audioUnlocked || getAudioContext().state !== "running") return;
 
-    const timerPaused = (tutorialActive && tutorialIndex < 4) || level2CardActive;
-
+  const timerPaused = (tutorialActive && tutorialIndex < 4) || level2CardActive || level3CardActive;
   const countdownRunning =
     timerStarted &&
     !gameEnded &&
@@ -1469,6 +1469,10 @@ function draw() {
     drawLevel2CardOverlay();
   }
 
+    if (level3CardActive) {
+    drawLevel3CardOverlay();
+  }
+
   // --- NEED FISH POPUP MESSAGE ---
   if (needFishMessageActive) {
     needFishMessageTimer--;
@@ -1560,6 +1564,8 @@ function keyPressed() {
 
   // LEVEL 2 INTRO CARD INPUT (level_2.js)
   if (handleLevel2CardKeyPressed()) return;
+
+  if (handleLevel3CardKeyPressed()) return;
 
   // TUTORIAL INPUT (tutorial_cards.js)
   if (handleTutorialKeyPressed()) return;
@@ -1691,7 +1697,7 @@ function drawTimer() {
   // 0-3). Shifting startTime forward by the elapsed frame time keeps
   // "elapsed" from advancing while paused, without needing a separate
   // paused-duration accumulator.
-   if (timerStarted && ((tutorialActive && tutorialIndex < 4) || level2CardActive)) {
+   if (timerStarted && ((tutorialActive && tutorialIndex < 4) || level2CardActive || level3CardActive)) {
     startTime += deltaTime;
   }
 
@@ -1793,7 +1799,7 @@ function updateWalkSound() {
 
 function handleInput() {
   // --- STOMP ---
-    if (keyIsDown(32) && !stompAnimating && !tutorialActive && !level2CardActive) {
+    if (keyIsDown(32) && !stompAnimating && !tutorialActive && !level2CardActive && !level3CardActive) {
     stompAnimating = true;
     stompFrame = 0;
     stompFrameTimer = 0;
@@ -1832,6 +1838,11 @@ function handleInput() {
   }
 
   if (level2CardActive) {
+    player.isMoving = false;
+    return;
+  }
+
+  if (level3CardActive) {
     player.isMoving = false;
     return;
   }
