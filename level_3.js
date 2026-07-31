@@ -19,9 +19,17 @@ let goatCard;
 let level3CardActive = false;
 let level3CardStep = 0;
 
+let stopSignTimer = 0;
+const STOPSIGN_RISE_FRAMES = 20;  // rises up + fades in
+const STOPSIGN_HOLD_FRAMES = 90;  // stays fully visible (~1.5s)
+const STOPSIGN_FADE_FRAMES = 30;  // fades out
+const STOPSIGN_TOTAL_FRAMES =
+  STOPSIGN_RISE_FRAMES + STOPSIGN_HOLD_FRAMES + STOPSIGN_FADE_FRAMES;
+
 function preloadLevel3Assets() {
   avalancheCard3 = loadImage("assets/images/avalanche_card3.png");
   goatCard = loadImage("assets/images/goat_card.png");
+  stopSignCard = loadImage("assets/images/stopsign_card.png");
 }
 
 // Actually starts the goat run, using whatever direction/position
@@ -43,6 +51,7 @@ function activateGoatRun() {
 function startLevel3Intro() {
   level3CardActive = true;
   level3CardStep = 0;
+  stopSignTimer = 0;
   gameState = "level3_card";
 }
 
@@ -50,16 +59,16 @@ function startLevel3Intro() {
 function handleLevel3CardKeyPressed() {
   if (gameState !== "level3_card" || keyCode !== ENTER) return false;
 
+  // Once the stop sign card starts, it dismisses itself — ignore input.
+  if (level3CardStep >= 2) return true;
+
   level3CardStep++;
 
-  if (level3CardStep >= 2) {
-    // both cards have been dismissed — start gameplay
-    level3CardActive = false;
-    gameState = "playing";
-    cursor(ARROW);
-  } else {
-    playCardSwitchSound(); // same sound used when tutorial/level2 cards advance
+  if (level3CardStep === 2) {
+    stopSignTimer = 0; // start the auto-dismiss animation
   }
+
+  playCardSwitchSound();
 
   return true;
 }
@@ -67,26 +76,75 @@ function handleLevel3CardKeyPressed() {
 function handleLevel3CardMousePressed() {
   if (gameState !== "level3_card") return false;
 
+  // Once the stop sign card starts, it dismisses itself — ignore input.
+  if (level3CardStep >= 2) return true;
+
   level3CardStep++;
 
-  if (level3CardStep >= 2) {
-    level3CardActive = false;
-    gameState = "playing";
-    cursor(ARROW);
-  } else {
-    playCardSwitchSound();
+  if (level3CardStep === 2) {
+    stopSignTimer = 0; // start the auto-dismiss animation
   }
+
+  playCardSwitchSound();
 
   return true;
 }
 
+// Draws the card — reuses drawDialogueCard() already defined in tutorial_cards.js
 // Draws the card — reuses drawDialogueCard() already defined in tutorial_cards.js
 function drawLevel3CardOverlay() {
   if (level3CardStep === 0) {
     drawDialogueCard(avalancheCard3);
   } else if (level3CardStep === 1) {
     drawDialogueCard(goatCard);
+  } else if (level3CardStep === 2) {
+    drawStopSignCard();
   }
+}
+
+// Auto-plays: rises up + fades in, holds, then fades out on its own —
+// no ENTER/click needed. Ends the level3 intro sequence when finished.
+function drawStopSignCard() {
+  stopSignTimer++;
+
+  let alpha = 255;
+  let riseOffset = 0;
+
+  if (stopSignTimer < STOPSIGN_RISE_FRAMES) {
+    // Rising in: fades from 0→255, moves up from +40px to 0
+    let t = stopSignTimer / STOPSIGN_RISE_FRAMES;
+    alpha = map(t, 0, 1, 0, 255);
+    riseOffset = map(t, 0, 1, 40, 0);
+  } else if (stopSignTimer < STOPSIGN_RISE_FRAMES + STOPSIGN_HOLD_FRAMES) {
+    // Fully visible hold
+    alpha = 255;
+    riseOffset = 0;
+  } else if (stopSignTimer < STOPSIGN_TOTAL_FRAMES) {
+    // Fading out
+    let fadeElapsed =
+      stopSignTimer - (STOPSIGN_RISE_FRAMES + STOPSIGN_HOLD_FRAMES);
+    let t = fadeElapsed / STOPSIGN_FADE_FRAMES;
+    alpha = map(t, 0, 1, 255, 0);
+    alpha = constrain(alpha, 0, 255);
+  } else {
+    // Animation finished — end the level3 intro sequence
+    level3CardActive = false;
+    gameState = "playing";
+    cursor(ARROW);
+    return;
+  }
+
+  push();
+  imageMode(CENTER);
+
+  const cardH = min(500, height - 200);
+  const cardW = cardH * (stopSignCard.width / stopSignCard.height);
+
+  tint(255, alpha);
+  image(stopSignCard, width / 2, height / 2 + riseOffset, cardW, cardH);
+  noTint();
+
+  pop();
 }
 
 function getLevel3FishStart(WORLD_W_SCALED, WORLD_H_SCALED) {
