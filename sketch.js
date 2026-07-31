@@ -1594,6 +1594,9 @@ function draw() {
   if (level3CardActive) {
     drawLevel3CardOverlay();
   }
+  if (currentLevel === 3 && goatWarningActive) {
+    drawGoatWarningCard();
+  }
 
   // --- NEED FISH POPUP MESSAGE ---
   if (needFishMessageActive) {
@@ -1836,6 +1839,11 @@ function resetGame() {
   lastNearCallTime = 0;
   comeFindMePlayed = false;
 
+  needFishMessageActive = false;
+  needFishMessageTimer = 0;
+  foundFishMessageActive = false;
+  foundFishMessageTimer = 0;
+  
   // HOLE SEQUENCE RESET
   holeState = "none";
   activeHole = null;
