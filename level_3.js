@@ -22,65 +22,6 @@ let level3CardStep = 0;
 function preloadLevel3Assets() {
   avalancheCard3 = loadImage("assets/images/avalanche_card3.png");
   goatCard = loadImage("assets/images/goat_card.png");
-  goatStopCard = loadImage("assets/images/goatstop_card.png");
-
-}
-// Counts down the 5-second warning window, then hands off to
-// activateGoatRun() to actually start the goat.
-function updateGoatWarning() {
-  if (!goatWarningActive) return;
-
-  goatWarningTimer++;
-
-  if (goatWarningTimer >= GOAT_WARNING_DURATION) {
-    goatWarningActive = false;
-    goatWarningTimer = 0;
-    activateGoatRun();
-  }
-}
-
-// Draws the warning card, fading out over the final second.
-// Doesn't pause gameplay — just an overlay heads-up.
-function drawGoatWarningCard() {
-  push();
-  imageMode(CENTER);
-
-  // --- Position: docked beside the timer, top of screen ---
-  const cardW = 90;
-  const cardH = cardW * (goatStopCard.height / goatStopCard.width);
-  const cardX = width - 80; // just right of the timer pill
-  const cardY = 75; // same vertical center as the timer
-
-  // --- Fade out over the last second ---
-  let alpha = 255;
-  if (goatWarningTimer > GOAT_WARNING_DURATION - GOAT_WARNING_FADE_FRAMES) {
-    let fadeProgress =
-      goatWarningTimer - (GOAT_WARNING_DURATION - GOAT_WARNING_FADE_FRAMES);
-    alpha = map(fadeProgress, 0, GOAT_WARNING_FADE_FRAMES, 255, 0);
-    alpha = constrain(alpha, 0, 255);
-  }
-
-  // --- Shine: 3 quick pulses (scale + glow) spread across the warning ---
-  const shineWindow = GOAT_WARNING_DURATION - GOAT_WARNING_FADE_FRAMES;
-  const shinePhase =
-    (goatWarningTimer / shineWindow) * TWO_PI * 3; // 3 full pulses
-  const pulse = (sin(shinePhase) + 1) / 2; // 0..1
-
-  const scaleAmt = 1 + pulse * 0.25; // grows up to 25% bigger at each pulse peak
-  const glowAmt = 15 + pulse * 25; // glow strength varies with the pulse
-
-  translate(cardX, cardY);
-  scale(scaleAmt);
-
-  drawingContext.shadowBlur = glowAmt;
-  drawingContext.shadowColor = "rgba(255, 220, 90, 0.9)";
-
-  tint(255, alpha);
-  image(goatStopCard, 0, 0, cardW, cardH);
-  noTint();
-
-  drawingContext.shadowBlur = 0;
-  pop();
 }
 
 // Actually starts the goat run, using whatever direction/position
@@ -118,6 +59,22 @@ function handleLevel3CardKeyPressed() {
     cursor(ARROW);
   } else {
     playCardSwitchSound(); // same sound used when tutorial/level2 cards advance
+  }
+
+  return true;
+}
+
+function handleLevel3CardMousePressed() {
+  if (gameState !== "level3_card") return false;
+
+  level3CardStep++;
+
+  if (level3CardStep >= 2) {
+    level3CardActive = false;
+    gameState = "playing";
+    cursor(ARROW);
+  } else {
+    playCardSwitchSound();
   }
 
   return true;
@@ -350,11 +307,6 @@ let goatTriggerTime = 0; // when we started the countdown
 let goatSpeed = 4; // movement speed
 let goatNextSpawnDelay = 3000; // first retry goat comes after 3s
 let goatFrameTimer = 0;
-let goatStopCard;
-let goatWarningActive = false;
-let goatWarningTimer = 0;
-const GOAT_WARNING_DURATION = 300; // 5 seconds @ 60fps
-const GOAT_WARNING_FADE_FRAMES = 60; // last 1 second fades out
 
 // Holds the spawn details decided when the warning starts, applied
 // once the warning finishes and the goat actually begins running.
@@ -454,26 +406,26 @@ function rectOverlap(a, b) {
   );
 }
 
-// Main Level 3 goat logic — this is the one actually called from draw().
 function updateLevel3Goat() {
   if (!WORLD_W_SCALED || !WORLD_H_SCALED) return;
 
-  // Advance the 5-second warning card, if one is showing
-  updateGoatWarning();
-
   // -------------------------
-  // 1) SPAWN LOGIC (now starts a 5s warning first, then spawns)
+  // 1) SPAWN LOGIC
   // -------------------------
 
-  // FIRST RUN: 1s after W press, always from right → left
-  if (!goatHasKilledOnce && goatTriggered && !goatActive && !goatWarningActive) {
+  // FIRST RUN: 1s after W press, randomized left/right
+  if (!goatHasKilledOnce && goatTriggered && !goatActive) {
     if (millis() - goatTriggerTime >= 500) {
-      pendingGoatDirection = "left";
-      pendingGoatX = WORLD_W_SCALED + 200;
+      if (random() < 0.5) {
+        pendingGoatDirection = "right";      // run right
+        pendingGoatX = -200;                 // spawn on the left side
+      } else {
+        pendingGoatDirection = "left";       // run left
+        pendingGoatX = WORLD_W_SCALED + 200; // spawn on the right side
+      }
       pendingGoatY = player.y;
 
-      goatWarningActive = true;
-      goatWarningTimer = 0;
+      activateGoatRun(); // spawn the goat right now
 
       // prevent repeat
       goatTriggered = false;
@@ -482,9 +434,7 @@ function updateLevel3Goat() {
 
   // RETRY RUNS: goats spawn repeatedly every few seconds
   if (goatHasKilledOnce) {
-    // If no goat active and no warning showing, start a warning
-    // after a random delay, then spawn once it finishes
-    if (!goatActive && !goatWarningActive && millis() - goatTriggerTime >= goatNextSpawnDelay) {
+    if (!goatActive && millis() - goatTriggerTime >= goatNextSpawnDelay) {
 
       // Random side
       if (random() < 0.5) {
@@ -498,8 +448,7 @@ function updateLevel3Goat() {
       // Random Y anywhere on mountain
       pendingGoatY = random(200, WORLD_H_SCALED - 200);
 
-      goatWarningActive = true;
-      goatWarningTimer = 0;
+      activateGoatRun(); // spawn the goat right now
     }
   }
 

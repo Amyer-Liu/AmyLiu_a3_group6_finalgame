@@ -1594,9 +1594,6 @@ function draw() {
   if (level3CardActive) {
     drawLevel3CardOverlay();
   }
-  if (currentLevel === 3 && goatWarningActive) {
-    drawGoatWarningCard();
-  }
 
   // --- NEED FISH POPUP MESSAGE ---
   if (needFishMessageActive) {
@@ -1637,7 +1634,6 @@ function draw() {
   if (debugMode) {
     drawDebugPanel();
   }
-  
 }
 
 function keyPressed() {
@@ -1843,7 +1839,7 @@ function resetGame() {
   needFishMessageTimer = 0;
   foundFishMessageActive = false;
   foundFishMessageTimer = 0;
-  
+
   // HOLE SEQUENCE RESET
   holeState = "none";
   activeHole = null;
@@ -2732,8 +2728,11 @@ function mousePressed() {
     return;
   }
 
-  // --- TUTORIAL MOUSE INPUT (tutorial_cards.js) ---
   if (handleTutorialMousePressed()) return;
+  
+  if (handleLevel2CardMousePressed()) return;
+
+  if (handleLevel3CardMousePressed()) return;
 
   // --- PLAY BUTTON PRESS (inside info panel) ---
   if (gameState === "level_picker" && activePanelIndex !== -1) {
