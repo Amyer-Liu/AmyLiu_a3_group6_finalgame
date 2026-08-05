@@ -7,7 +7,7 @@ const LEVEL3_FISH_SPAWNS = [
 const LEVEL3_HOLES = [
   { x: 585, y: 1122 },
   { x: 966, y: 1157 },
-  { x: 889, y: 702 },
+  { x: 889, y: 702 }, // TODO: top-right hole — confirm placement in-browser before moving
   { x: 645, y: 869 },
   { x: 282, y: 947 },
   { x: 329, y: 569 },
@@ -15,20 +15,18 @@ const LEVEL3_HOLES = [
 ];
 
 let avalancheCard3;
-let goatCard;
 let level3CardActive = false;
 let level3CardStep = 0;
 
 let stopSignTimer = 0;
-const STOPSIGN_RISE_FRAMES = 20;  // rises up + fades in
-const STOPSIGN_HOLD_FRAMES = 90;  // stays fully visible (~1.5s)
-const STOPSIGN_FADE_FRAMES = 30;  // fades out
+const STOPSIGN_RISE_FRAMES = 20; // rises up + fades in
+const STOPSIGN_HOLD_FRAMES = 90; // stays fully visible (~1.5s)
+const STOPSIGN_FADE_FRAMES = 30; // fades out
 const STOPSIGN_TOTAL_FRAMES =
   STOPSIGN_RISE_FRAMES + STOPSIGN_HOLD_FRAMES + STOPSIGN_FADE_FRAMES;
 
 function preloadLevel3Assets() {
   avalancheCard3 = loadImage("assets/images/avalanche_card3.png");
-  goatCard = loadImage("assets/images/goat_card.png");
   stopSignCard = loadImage("assets/images/stopsign_card.png");
 }
 
@@ -43,7 +41,7 @@ function activateGoatRun() {
   if (goatSound && goatSound.isLoaded()) goatSound.play();
 
   if (goatHasKilledOnce) {
-    goatNextSpawnDelay = random(800, 1800);
+    goatNextSpawnDelay = random(300, 900); // more goats, faster
     goatTriggerTime = millis();
   }
 }
@@ -60,11 +58,11 @@ function handleLevel3CardKeyPressed() {
   if (gameState !== "level3_card" || keyCode !== ENTER) return false;
 
   // Once the stop sign card starts, it dismisses itself — ignore input.
-  if (level3CardStep >= 2) return true;
+  if (level3CardStep >= 1) return true;
 
   level3CardStep++;
 
-  if (level3CardStep === 2) {
+  if (level3CardStep === 1) {
     stopSignTimer = 0; // start the auto-dismiss animation
   }
 
@@ -77,11 +75,11 @@ function handleLevel3CardMousePressed() {
   if (gameState !== "level3_card") return false;
 
   // Once the stop sign card starts, it dismisses itself — ignore input.
-  if (level3CardStep >= 2) return true;
+  if (level3CardStep >= 1) return true;
 
   level3CardStep++;
 
-  if (level3CardStep === 2) {
+  if (level3CardStep === 1) {
     stopSignTimer = 0; // start the auto-dismiss animation
   }
 
@@ -96,8 +94,6 @@ function drawLevel3CardOverlay() {
   if (level3CardStep === 0) {
     drawDialogueCard(avalancheCard3);
   } else if (level3CardStep === 1) {
-    drawDialogueCard(goatCard);
-  } else if (level3CardStep === 2) {
     drawStopSignCard();
   }
 }
@@ -127,8 +123,13 @@ function drawStopSignCard() {
     alpha = map(t, 0, 1, 255, 0);
     alpha = constrain(alpha, 0, 255);
   } else {
-    // Animation finished — end the level3 intro sequence
+    // Animation finished — end the Level 3 intro sequence.
     level3CardActive = false;
+
+    // Start the Level 3 timer only after every intro card is finished.
+    startTime = millis();
+    timerStarted = true;
+
     gameState = "playing";
     cursor(ARROW);
     return;
@@ -363,7 +364,7 @@ let goatHasKilledOnce = false; // has the tutorial kill already happened?
 let goatTriggered = false; // generic “run across screen” trigger
 let goatTriggerTime = 0; // when we started the countdown
 let goatSpeed = 4; // movement speed
-let goatNextSpawnDelay = 3000; // first retry goat comes after 3s
+let goatNextSpawnDelay = 150; // first retry goat
 let goatFrameTimer = 0;
 
 // Holds the spawn details decided when the warning starts, applied
@@ -371,6 +372,23 @@ let goatFrameTimer = 0;
 let pendingGoatDirection = "left";
 let pendingGoatX = 0;
 let pendingGoatY = 0;
+
+// ------------------------------------------------------------
+// GOAT SOUND PROXIMITY
+// ------------------------------------------------------------
+const GOAT_SOUND_MAX_DIST = 900; // beyond this, goat sound is silent
+const GOAT_SOUND_MIN_VOL = 0.05; // floor so it never fully vanishes while active
+
+function updateGoatSoundProximity() {
+  if (!goatActive || !goatSound || !goatSound.isLoaded()) return;
+  if (!goatSound.isPlaying()) return;
+
+  const d = dist(player.x, player.y, goatX, goatY);
+  const t = constrain(1 - d / GOAT_SOUND_MAX_DIST, 0, 1);
+  const vol = map(t, 0, 1, GOAT_SOUND_MIN_VOL, 1);
+
+  goatSound.setVolume(vol);
+}
 
 // Get a goat frame from the correct row (0 = left, 1 = right)
 function getGoatFrame(index, row) {
@@ -473,12 +491,13 @@ function updateLevel3Goat() {
 
   // FIRST RUN: 1s after W press, randomized left/right
   if (!goatHasKilledOnce && goatTriggered && !goatActive) {
-    if (millis() - goatTriggerTime >= 500) {
+    if (millis() - goatTriggerTime >= 150) {
+      // earlier goat
       if (random() < 0.5) {
-        pendingGoatDirection = "right";      // run right
-        pendingGoatX = -200;                 // spawn on the left side
+        pendingGoatDirection = "right"; // run right
+        pendingGoatX = -200; // spawn on the left side
       } else {
-        pendingGoatDirection = "left";       // run left
+        pendingGoatDirection = "left"; // run left
         pendingGoatX = WORLD_W_SCALED + 200; // spawn on the right side
       }
       pendingGoatY = player.y;
@@ -493,13 +512,12 @@ function updateLevel3Goat() {
   // RETRY RUNS: goats spawn repeatedly every few seconds
   if (goatHasKilledOnce) {
     if (!goatActive && millis() - goatTriggerTime >= goatNextSpawnDelay) {
-
       // Random side
       if (random() < 0.5) {
-        pendingGoatDirection = "right";      // run right
-        pendingGoatX = -200;                 // left side
+        pendingGoatDirection = "right"; // run right
+        pendingGoatX = -200; // left side
       } else {
-        pendingGoatDirection = "left";       // run left
+        pendingGoatDirection = "left"; // run left
         pendingGoatX = WORLD_W_SCALED + 200; // right side
       }
 
@@ -520,6 +538,8 @@ function updateLevel3Goat() {
   } else {
     goatX += goatSpeed;
   }
+
+  updateGoatSoundProximity();
 
   // -------------------------
   // 3) ANIMATE GOAT
@@ -577,16 +597,19 @@ function updateLevel3Goat() {
   // -------------------------
   // 5) COLLISION WITH PENGUIN
   // -------------------------
+  // Use the same cfg, frameW, frameH already defined above
   let goatHitX = goatX;
   let goatHitY = goatY - frameH * cfg.scale;
   let goatHitW = frameW * cfg.scale;
   let goatHitH = frameH * cfg.scale;
 
+  // Penguin hitbox
   let penguinHitX = player.x + PENGUIN_HITBOX.offsetX;
   let penguinHitY = player.y + PENGUIN_HITBOX.offsetY;
   let penguinHitW = PENGUIN_HITBOX.w;
   let penguinHitH = PENGUIN_HITBOX.h;
 
+  // Overlap check
   if (
     goatHitX < penguinHitX + penguinHitW &&
     goatHitX + goatHitW > penguinHitX &&
@@ -595,8 +618,7 @@ function updateLevel3Goat() {
   ) {
     if (goatSound && goatSound.isLoaded()) goatSound.play();
 
-    gameEnded = true;
-    gameState = "loss";
+    triggerLoss("goat");
     if (walkSound && walkSound.isPlaying()) walkSound.stop();
 
     goatHasKilledOnce = true;
