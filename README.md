@@ -58,6 +58,11 @@ After playtesting, we implemented three major refinements to improve clarity, im
 | `assets/images/space_dialoguecard.png`| Card Assets - ChatGPT.com [8]|
 | `assets/images/title_screen.png`| Title Screen - ChatGPT.com [8]|
 | `assets/images/transition_page.png`| Transition Screen - ChatGPT.com [8]|
+| `assets/videos/goat_death.mp4`| Transition Video - ChatGPT.com [10]|
+| `assets/videos/crevice_death.mp4`| Transition Video - ChatGPT.com [10]|
+| `assets/videos/time_death.mp4`| Transition Video - ChatGPT.com [11]|
+| `assets/images/crevice.png`| Crevice image - ChatGPT.com [3]|
+
 
 
 # References
@@ -87,3 +92,9 @@ N/A. 2026. Check out this chat. ChatGPT. Retrieved July 12, 2026 from https://ch
 
 [9]
 N/A. 2026. Check out this chat. ChatGPT. Retrieved July 28, 2026 from https://chatgpt.com/share/6a6d2c1f-204c-83ea-a36a-8885f7181c1e
+
+[10]
+N/A. 2026. Check out this chat. ChatGPT. Retrieved August 3, 2026 from https://chatgpt.com/share/6a70e8d1-add8-83ea-a59c-4afe20ac60c5
+
+[11]
+N/A. 2026. Check out this chat. ChatGPT. Retrieved August 3, 2026 from https://chatgpt.com/share/6a7164a8-4a20-83ea-b3b1-919ce8a91233
