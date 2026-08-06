@@ -53,7 +53,7 @@ After playtesting, we implemented three major refinements to improve clarity, im
 | `assets/images/tutorial_box.png`        | Warning and box assets - ChatGPT.com                       [1] |
 | `assets/images/warning_octo.png`        | Warning and box assets - ChatGPT.com                       [1] |
 | `assets/images/win_screen.png`          | Screens, spike and penguin sprite sheets - ChatGPT.com     [5] |
-
+| `assets/images/avalanche_card.png`| Card Assets - ChatGPT.com [10]|
 
 # References
 
@@ -89,4 +89,7 @@ N/A. 2026. Check out this chat. ChatGPT. Retrieved July 8, 2026 from https://cha
 2026. Check out this chat. ChatGPT. Retrieved July 22, 2026 from https://chatgpt.com/share/6a58dada-d520-83ea-8fbb-c0df75a1c8e2
 
 
+[9]
+2026. Check out this chat. ChatGPT. Retrieved July 12, 2026 from https://chatgpt.com/share/6a67eafb-07a8-83ea-b230-e15343be5d70
 
+[10]
